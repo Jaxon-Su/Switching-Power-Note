@@ -8,7 +8,6 @@
 | NVLink | NVIDIA 高速互連技術；GPU 間大量交換資料時，支援的平台通常可利用它提升通訊效能 |
 | NVSwitch | 連接多個 NVLink 埠的交換晶片，讓多顆 GPU 同時交換資料 |
 | NVMe（Non-Volatile Memory Express） | 儲存通訊協定；本機 NVMe SSD 通常透過 PCIe 傳輸 |
-| M.2 | 外形與連接器規格；M.2 SSD 可能使用 PCIe/NVMe，也可能使用 SATA |
 
 NVSwitch 可讓多組 GPU 同時通訊，並不是一次只選一組連通的 MUX。實際頻寬仍受 GPU 埠與交換網路限制。
 
@@ -54,7 +53,6 @@ Gen 代表世代／每 Lane 速率；xN 代表 Lane 數。實際頻寬還受封�
 | CLKREQ#／WAKE# | 時脈請求／喚醒；依介面與平台支援 |
 | PRSNT#／SMBus | 插卡存在偵測／輔助管理；依介面支援 |
 | 標準擴充卡供電 | +12 V、+3.3 V，以及依平台提供的 +3.3 Vaux |
-| M.2 NVMe SSD 供電 | 主要為 +3.3 V |
 
 x4、x16 不代表供電電壓。REFCLK 也不是高速資料的逐位元時脈，RX 仍需 CDR（時脈與資料恢復）。
 
@@ -104,17 +102,3 @@ Diag 是 Diagnostics，意指診斷測試。
 | 整機驗證 | 重啟循環、燒機、實際 AI 工作負載 |
 
 測試通過只代表已執行項目符合設定門檻，不代表所有硬體功能都被涵蓋。
-
-## 5. 通路多，如何定位故障
-
-1. 建立拓樸與實體對照：GPU UUID、PCIe BDF、插槽、Switch 埠、NVLink 編號。
-2. 確認實際路徑與協商狀態：預期 x16 不代表目前真的以 x16 運作。
-3. 分別測 RAM ↔ 各 GPU、GPU ↔ GPU，再測多裝置同時傳輸。
-4. 比較測試前後的錯誤增量：PCIe AER／Replay、NVLink 各 Link 計數與 GPU／系統日誌。
-5. 找共同故障段：只有一顆異常查其分支；多顆同時異常查共享 Switch、上行、供電等。
-6. 依平台維修方式斷電交換已知良品，觀察問題跟著模組移動，還是留在插槽。
-7. 縮小至特定 Link 後，再做逐 Lane 診斷與電氣量測。
-
-常用起點：`nvidia-smi topo -m`、`nvidia-smi -q`、Linux `lspci -t`、`lspci -vv`。詳細功能依版本與權限而定。
-
-接收端報錯只能先指向一段通路；對端 TX、走線、連接器與本端 RX 都可能是原因。降低速率後恢復正常提示裕量問題，但不是零件故障的直接證明。
